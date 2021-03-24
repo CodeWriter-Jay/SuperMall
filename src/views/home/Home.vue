@@ -1,6 +1,13 @@
 <template>
 	<div id="home">
 		<nav-bar class="home-nav"><div slot="center">购物街</div></nav-bar>
+		<tab-control
+			ref="tabControlTop"
+			:titles="['流行', '新款', '精选']"
+			@tabClick="tabClick"
+			class="tab-control-top"
+			v-show="isTabFixed"
+		/>
 		<scroll
 			class="content"
 			ref="scroll"
@@ -9,10 +16,11 @@
 			:pull-up-load="true"
 			@pullingUp="loadMore"
 		>
-			<home-swiper :banners="banners" />
+			<home-swiper :banners="banners" @swiperImageLoad="swiperImageLoad" />
 			<recommend-view :recommends="recommends" />
 			<feature-view />
 			<tab-control
+				ref="tabControl"
 				:titles="['流行', '新款', '精选']"
 				@tabClick="tabClick"
 			/>
@@ -59,6 +67,9 @@ export default {
 			},
 			currentType: "pop",
 			isShowBackTop: false,
+			tabOffsetTop: 0,
+			isTabFixed: false,
+			saveY: 0,
 		};
 	},
 	computed: {
@@ -76,12 +87,18 @@ export default {
 	},
 	mounted() {
 		// 监听图片加载完成  用于刷新BScroll高度
-
 		const refresh = debounce(this.$refs.scroll.refresh, 500);
 
 		this.$bus.$on("itemImageLoad", () => {
 			refresh();
 		});
+	},
+	activated() {
+		this.$refs.scroll.refresh();
+		this.$refs.scroll.scrollTo(0, this.saveY, 0);
+	},
+	deactivated() {
+		this.saveY = this.$refs.scroll.getScrollY();
 	},
 	methods: {
 		/**
@@ -99,15 +116,24 @@ export default {
 					this.currentType = "sell";
 					break;
 			}
+			this.$refs.tabControlTop.currentIndex = this.$refs.tabControl.currentIndex = index;
 		},
 		backClick() {
-			this.$refs.scroll.scrollToTop(0, 0, 500);
+			this.$refs.scroll.scrollTo(0, 0, 500);
 		},
 		contentScroll(position) {
+			// 半段backTop是否显示
 			this.isShowBackTop = -position.y > 1000;
+
+			// 决定tabControl是否吸顶
+			this.isTabFixed = -position.y > this.tabOffsetTop;
 		},
 		loadMore() {
 			this.getHomeGoods(this.currentType);
+		},
+		swiperImageLoad() {
+			// 获取tabControl的offsetTop
+			this.tabOffsetTop = this.$refs.tabControl.$el.offsetTop - 44;
 		},
 
 		/**
@@ -140,17 +166,26 @@ export default {
 .home-nav {
 	background-color: var(--color-tint);
 	color: #fff;
-	position: fixed;
+	/* position: fixed;
 	left: 0;
 	right: 0;
 	top: 0;
-	z-index: 999;
+	z-index: 999; */
 }
 
 .content {
 	box-sizing: border-box;
 	height: calc(100% - 49px);
 	overflow: hidden;
+	/* margin-top: 44px; */
+}
+
+.tab-control-top {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	z-index: 9;
 	margin-top: 44px;
 }
 </style>

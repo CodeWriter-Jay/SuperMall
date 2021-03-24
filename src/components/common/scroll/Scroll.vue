@@ -49,14 +49,21 @@ export default {
 		}
 	},
 	methods: {
-		scrollToTop(x, y, scrollTime = 500) {
-			this.scroll && this.scroll.scrollTo(x, y, scrollTime);
+		scrollTo(x, y, scrollTime = 500) {
+			if (scrollTime == 0) {
+				this.scroll && this.scroll.scrollTo(x, y);
+			} else {
+				this.scroll && this.scroll.scrollTo(x, y, scrollTime);
+			}
 		},
 		finishPullUp() {
 			this.scroll && this.scroll.finishPullUp();
 		},
 		refresh() {
 			this.scroll && this.scroll.refresh();
+		},
+		getScrollY() {
+			return this.scroll ? this.scroll.y : 0;
 		},
 	},
 };
