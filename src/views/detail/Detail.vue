@@ -19,7 +19,6 @@
 		</scroll>
 		<back-top @click.native="backTop" v-show="isShowBackTop" />
 		<detail-bottom-bar @addToCart="addToCart" />
-		<toast :message="'哈哈哈'" />
 	</div>
 </template>
 
@@ -37,7 +36,6 @@ import Scroll from "../../components/common/scroll/Scroll.vue";
 import { backToTopMixin } from "common/mixin.js";
 import { mapActions } from "vuex";
 import GoodsList from "../../components/content/goods/GoodsList.vue";
-import Toast from "../../components/common/toast/Toast.vue";
 
 import {
 	getDetail,
@@ -60,7 +58,6 @@ export default {
 		DetailCommentInfo,
 		GoodsList,
 		DetailBottomBar,
-		Toast,
 	},
 	mixins: [backToTopMixin],
 	data() {
@@ -169,7 +166,7 @@ export default {
 			// 	console.log(res);
 			// });
 			this.addCart(product).then((res) => {
-				console.log(res);
+				this.$toast.show(res,2000);
 			});
 		},
 	},
