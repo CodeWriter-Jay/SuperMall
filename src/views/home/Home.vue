@@ -26,7 +26,7 @@
 			/>
 			<goods-list :goods="showGoods" />
 		</scroll>
-		<back-top @click.native="backClick" v-show="isShowBackTop" />
+		<back-top @click.native="backTop" v-show="isShowBackTop" />
 	</div>
 </template>
 
@@ -39,7 +39,7 @@ import NavBar from "components/common/navbar/NavBar";
 import TabControl from "../../components/content/tabControl/TabControl.vue";
 import GoodsList from "../../components/content/goods/GoodsList.vue";
 import Scroll from "../../components/common/scroll/Scroll.vue";
-import BackTop from "../../components/content/backTop/BackTop.vue";
+import { backToTopMixin } from "common/mixin.js";
 
 import { getHomeMultidata, getHomeGoods } from "network/home";
 import { debounce } from "common/utils.js";
@@ -54,7 +54,6 @@ export default {
 		TabControl,
 		GoodsList,
 		Scroll,
-		BackTop,
 	},
 	data() {
 		return {
@@ -72,6 +71,7 @@ export default {
 			saveY: 0,
 		};
 	},
+	mixins: [backToTopMixin],
 	computed: {
 		showGoods() {
 			return this.goods[this.currentType].list;
@@ -118,9 +118,6 @@ export default {
 			}
 			this.$refs.tabControlTop.currentIndex = this.$refs.tabControl.currentIndex = index;
 		},
-		backClick() {
-			this.$refs.scroll.scrollTo(0, 0, 500);
-		},
 		contentScroll(position) {
 			// 半段backTop是否显示
 			this.isShowBackTop = -position.y > 1000;
@@ -166,18 +163,12 @@ export default {
 .home-nav {
 	background-color: var(--color-tint);
 	color: #fff;
-	/* position: fixed;
-	left: 0;
-	right: 0;
-	top: 0;
-	z-index: 999; */
 }
 
 .content {
 	box-sizing: border-box;
 	height: calc(100% - 49px);
 	overflow: hidden;
-	/* margin-top: 44px; */
 }
 
 .tab-control-top {

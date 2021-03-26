@@ -1,15 +1,25 @@
 <template>
 	<div id="detail">
-		<detail-nav-bar class="detail-nav" />
-		<scroll class="content" ref="scroll">
-			<detail-swiper :topImages="topImages" @swiperImageLoad="imageLoad" />
+		<detail-nav-bar
+			class="detail-nav"
+			@titleClick="titleClick"
+			ref="detailNavBar"
+		/>
+		<scroll class="content" ref="scroll" :probeType="3" @scroll="contentScroll">
+			<detail-swiper :topImages="topImages" />
 			<detail-base-info :goods="goods" />
 			<detail-shop-info :shop="Shop" />
-			<detail-goods-info :detailInfo="detailInfo" @imageLoad="imageLoad" />
-			<detail-param-info :paramInfo="paramInfo" />
-			<detail-comment-info :commentInfo="commentInfo" />
-			<goods-list :goods="recommends" />
+			<detail-goods-info
+				:detailInfo="detailInfo"
+				@detailImageLoad="imageLoad"
+			/>
+			<detail-param-info ref="params" :paramInfo="paramInfo" />
+			<detail-comment-info ref="comment" :commentInfo="commentInfo" />
+			<goods-list ref="recommend" :goods="recommends" />
 		</scroll>
+		<back-top @click.native="backTop" v-show="isShowBackTop" />
+		<detail-bottom-bar @addToCart="addToCart" />
+		<toast :message="'哈哈哈'" />
 	</div>
 </template>
 
@@ -21,9 +31,13 @@ import DetailShopInfo from "./childComps/DetailShopInfo.vue";
 import DetailGoodsInfo from "./childComps/DetailGoodsInfo.vue";
 import DetailParamInfo from "./childComps/DetailParamInfo.vue";
 import DetailCommentInfo from "./childComps/DetailCommentInfo.vue";
+import DetailBottomBar from "./childComps/DetailBottomBar.vue";
 
 import Scroll from "../../components/common/scroll/Scroll.vue";
-import { debounce } from "common/utils.js";
+import { backToTopMixin } from "common/mixin.js";
+import { mapActions } from "vuex";
+import GoodsList from "../../components/content/goods/GoodsList.vue";
+import Toast from "../../components/common/toast/Toast.vue";
 
 import {
 	getDetail,
@@ -32,7 +46,6 @@ import {
 	Shop,
 	GoodsParam,
 } from "network/detail.js";
-import GoodsList from "../../components/content/goods/GoodsList.vue";
 
 export default {
 	name: "Detail",
@@ -46,7 +59,10 @@ export default {
 		DetailParamInfo,
 		DetailCommentInfo,
 		GoodsList,
+		DetailBottomBar,
+		Toast,
 	},
+	mixins: [backToTopMixin],
 	data() {
 		return {
 			iid: null,
@@ -99,8 +115,62 @@ export default {
 		});
 	},
 	methods: {
+		...mapActions({
+			addCart: "addToCart",
+		}),
 		imageLoad() {
 			this.$refs.scroll.refresh();
+		},
+		titleClick(index) {
+			switch (index) {
+				case 0:
+					this.$refs.scroll.scrollTo(0, 0, 200);
+					break;
+				case 1:
+					this.$refs.scroll.scrollTo(0, -this.$refs.params.$el.offsetTop, 200);
+					break;
+				case 2:
+					this.$refs.scroll.scrollTo(0, -this.$refs.comment.$el.offsetTop, 200);
+					break;
+				case 3:
+					this.$refs.scroll.scrollTo(
+						0,
+						-this.$refs.recommend.$el.offsetTop,
+						200
+					);
+					break;
+			}
+		},
+		contentScroll(position) {
+			// 半段backTop是否显示
+			this.isShowBackTop = -position.y > 1000;
+
+			let y = -position.y;
+			if (y < this.$refs.params.$el.offsetTop)
+				this.$refs.detailNavBar.currentIndex = 0;
+			else if (y < this.$refs.comment.$el.offsetTop)
+				this.$refs.detailNavBar.currentIndex = 1;
+			else if (y < this.$refs.recommend.$el.offsetTop)
+				this.$refs.detailNavBar.currentIndex = 2;
+			else this.$refs.detailNavBar.currentIndex = 3;
+		},
+		addToCart() {
+			// 获取购物车所需信息
+			const product = {};
+			product.image = this.topImages[0];
+			product.title = this.goods.title;
+			product.desc = this.goods.desc;
+			product.price = this.goods.newPrice;
+			product.iid = this.iid;
+
+			// 将商品添加到购物车里
+			// this.$store.commit('addToCart',product);
+			// this.$store.dispatch("addToCart", product).then((res) => {
+			// 	console.log(res);
+			// });
+			this.addCart(product).then((res) => {
+				console.log(res);
+			});
 		},
 	},
 };
@@ -115,11 +185,11 @@ export default {
 }
 
 .content {
-	height: calc(100% - 44px);
+	height: calc(100% - 44px - 58px);
+	overflow: hidden;
 }
 
 .detail-nav {
-	position: relative;
 	z-index: 9;
 	background-color: #fff;
 }

@@ -1,19 +1,3 @@
-# supermall
+# SuperMall Vue练习项目 一个仿蘑菇街的移动电商平台
 
-## Project setup
-```
-npm install
-```
-
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
-
-### Compiles and minifies for production
-```
-npm run build
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+Vue.js + [better-scroll](https://better-scroll.github.io/docs/zh-CN/).
